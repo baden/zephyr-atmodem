@@ -1,0 +1,19 @@
+config MODEM_A7682E_RX_STACK_SIZE
+	int "Stack size for the SIMCOM A7682E modem driver RX thread"
+	default 3072
+	#default 2048
+	help
+	  This stack is used by the SIMCOM A7682E RX thread.
+
+config MODEM_SIMCOM_INIT_PRIORITY
+	int "Simcom driver init priority"
+	default 80
+	help
+	  simcom a7682 driver initialization priority.
+
+config MODEM_A7682E_WORKQ_STACK_SIZE
+	int "Stack size for the driver work queue"
+	default 2048
+	help
+	  This stack is used by the work queue thread.
+

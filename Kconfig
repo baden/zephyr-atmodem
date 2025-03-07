@@ -1,0 +1,109 @@
+comment "ATModem Drivers"
+
+module = MMODEM
+module-str = mmodem
+source "subsys/logging/Kconfig.template.log_config"
+
+config ATMODEM_DRV
+	bool "AT-modem driver"
+	help
+	  This option enables the AT MODEM driver.
+
+
+if ATMODEM_DRV
+
+config ATMODEM_WORKER_DELAY
+	int "Worker delay in ms"
+	default 100
+	help
+	  This used for ensure that the workers work simultaneously.
+
+endif
+
+config MODEM_SIM7600G
+	bool "SIMCOM SIM7600G 2G/4G driver"
+    select MODEM_CONTEXT
+    select MODEM_CMD_HANDLER
+    select MODEM_IFACE_UART
+    select ATMODEM_DRV
+    #select MODEM_IFACE_UART_POLL
+	#select SERIAL_HAS_DRIVER
+	#select HAS_NUMICRO_UART
+	help
+	  This option enables the SIM7600G driver (May be hardcoded to Delfast PC-002)
+	  Say y to use SIM7600G on Delfast PC-001.
+
+if MODEM_SIM7600G
+rsource "Kconfig.sim7600g"
+endif
+
+config MODEM_A7682E
+	bool "SIMCOM A7682E 2G/4G driver"
+    select MODEM_CONTEXT
+    select MODEM_CMD_HANDLER
+    select MODEM_IFACE_UART
+    select ATMODEM_DRV
+    #select MODEM_IFACE_UART_POLL
+	#select SERIAL_HAS_DRIVER
+	#select HAS_NUMICRO_UART
+	help
+	  This option enables the A7682E driver (May be hardcoded to Fenix FXA500-02)
+	  Say y to use A7682E on Fenix FXA500-02.
+
+config MODEM_HTTP
+	bool "HTTP support"
+	default y if MODEM_A7682E
+	help
+	  This option enables the HTTP support for the modem.
+
+config MODEM_MQTT
+	bool "MQTT support"
+	default y if MODEM_A7682E
+	help
+	  This option enables the MQTT support for the modem.
+
+config MODEM_VOICE
+	bool "Voice support"
+	default y if MODEM_A7682E
+	help
+	  This option enables the Voice support for the modem.
+
+config MODEM_SMS
+	bool "SMS support"
+	default y if MODEM_A7682E
+	help
+	  This option enables the SMS support for the modem.
+
+config MODEM_TCP
+	bool "TCP support"
+	default y if MODEM_A7682E
+	help
+	  This option enables the TCP support for the modem.
+
+config MODEM_DNS
+	bool "DNS support"
+	default y if MODEM_A7682E
+	help
+	  This option enables the DNS support for the modem.
+
+if MODEM_A7682E
+rsource "Kconfig.a7682e"
+endif
+
+
+config MODEM_ESP32C3_AT
+	bool "Espressif ESP32-C3 AT BT driver"
+    select MODEM_CONTEXT
+    select MODEM_CMD_HANDLER
+    select MODEM_IFACE_UART
+    select ATMODEM_DRV
+    #select MODEM_IFACE_UART_POLL
+	#select SERIAL_HAS_DRIVER
+	#select HAS_NUMICRO_UART
+	help
+	  This option enables the ESP32-C2 AT driver (BT only)
+	  Say y to use ESP32-C3 on Delfast PC-001.
+
+if MODEM_ESP32C3_AT
+rsource "Kconfig.esp32c3-at"
+endif

@@ -1,0 +1,17 @@
+config MODEM_ESP32_AT_RX_STACK_SIZE
+	int "Stack size for the ESP32-C3 modem driver RX thread"
+	default 3072
+	help
+	  This stack is used by the quectel ESP32-C3 RX thread.
+
+config MODEM_ESP32_AT_WORKQ_STACK_SIZE
+	int "Stack size for the driver work queue"
+	default 3048
+	help
+	  This stack is used by the work queue thread.
+
+config MODEM_ESP32_AT_WORKQ_THREAD_PRIORITY
+	int "Priority of work queue thread"
+	default 7
+	help
+	  Priority of thread used for processing driver work queue items.

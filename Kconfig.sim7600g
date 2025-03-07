@@ -1,0 +1,23 @@
+config MODEM_SIM7600G_RX_STACK_SIZE
+	int "Stack size for the SIMCOM SIM7600G modem driver RX thread"
+	default 4096
+	help
+	  This stack is used by the SIMCOM SIM7600G RX thread.
+
+config MODEM_SIMCOM_INIT_PRIORITY
+	int "Simcom driver init priority"
+	default 80
+	help
+	  simcom sim7080 driver initialization priority.
+
+config MODEM_SIM7600G_WORKQ_STACK_SIZE
+	int "Stack size for the driver work queue"
+	default 3048
+	help
+	  This stack is used by the work queue thread.
+
+config MODEM_SIM7600G_WORKQ_THREAD_PRIORITY
+	int "Priority of work queue thread"
+	default 7
+	help
+	  Priority of thread used for processing driver work queue items.
