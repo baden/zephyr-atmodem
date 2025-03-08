@@ -2,7 +2,7 @@ zephyr_library()
 
 zephyr_library_sources(onoff.c)
 zephyr_library_sources(id.c)
-zephyr_library_sources(gprs.c)
+zephyr_library_sources_ifdef(CONFIG_MODEM_GPRS gprs.c)
 zephyr_library_sources_ifdef(CONFIG_MODEM_HTTP http.c)
 zephyr_library_sources_ifdef(CONFIG_MODEM_SMS sms.c)
 zephyr_library_sources_ifdef(CONFIG_MODEM_TCP tcp.c)

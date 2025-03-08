@@ -50,6 +50,12 @@ config MODEM_A7682E
 	  This option enables the A7682E driver (May be hardcoded to Fenix FXA500-02)
 	  Say y to use A7682E on Fenix FXA500-02.
 
+config MODEM_GPRS
+	bool "GPRS support"
+	default y if MODEM_A7682E
+	help
+	  This option enables the HTTP support for the modem.
+
 config MODEM_HTTP
 	bool "HTTP support"
 	default y if MODEM_A7682E
