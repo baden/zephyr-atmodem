@@ -228,8 +228,9 @@ int simcom_setup(struct modem_data *mdata, const struct modem_config *config)
 
     //k_sleep(K_SECONDS(60));
     k_sleep(K_SECONDS(1));
-
-    modem_gprs_init(mdata);
+    #if defined(CONFIG_MODEM_GPRS)
+        modem_gprs_init(mdata);
+    #endif
     #if defined(CONFIG_MODEM_SMS)
         simcom_setup_sms_center(mdata);
     #endif
@@ -285,7 +286,9 @@ int simcom_stop(struct modem_data *mdata, const struct modem_config *config)
     #if defined(CONFIG_MODEM_TCP)
         simcom_tcp_context_disable(mdata);
     #endif
-    modem_gprs_done(mdata);
+    #if defined(CONFIG_MODEM_GPRS)
+        modem_gprs_done(mdata);
+    #endif
 
     #if 0
         LOG_ERR("LTE is temporrary disabled.");
@@ -365,8 +368,10 @@ int modem_fast_reinit(const struct device *dev)
     #if defined(CONFIG_MODEM_TCP)
         simcom_tcp_context_disable(mdata);
     #endif
-    modem_gprs_done(mdata);
-    modem_gprs_init(mdata);
+    #if defined(CONFIG_MODEM_GPRS)
+        modem_gprs_done(mdata);
+        modem_gprs_init(mdata);
+    #endif
     #if defined(CONFIG_MODEM_SMS)
         simcom_setup_sms_center(mdata);
     #endif

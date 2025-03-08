@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(CONFIG_MODEM_GPRS)
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -11,3 +13,4 @@ int modem_gprs_done(struct modem_data *mdata);
 int modem_apn(struct modem_data *mdata, char *apn, size_t len);
 int modem_pdp_context_enable(struct modem_data *mdata);
 
+#endif
