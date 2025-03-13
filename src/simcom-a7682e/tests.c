@@ -54,3 +54,9 @@ int modem_rssi_query(struct modem_data *mdata)
     struct modem_cmd cmd = MODEM_CMD("+CSQ: ", on_cmd_csq, 2U, ",");
     return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, &cmd, 1U, "AT+CSQ", &mdata->sem_response, K_SECONDS(3));
 }
+
+int simcom_rssi_query(const struct device *dev)
+{
+	struct modem_data *mdata = dev->data;
+	return modem_rssi_query(mdata);
+}

@@ -1,10 +1,10 @@
-# AT-Modem driver for Zephys OS
+# Драйвер AT-модему для Zephyr OS
 
-## Supported devices
-
-- SIMCOM SIM7600G
-- ESP32C3 with ESP-AT firmware
-
-TODO:
+## Підтримувані пристрої
 
 - SIMCOM A7682E
+
+## Планується підтримка:
+
+- SIMCOM SIM7600G
+- ESP32C3 з прошивкою ESP-AT

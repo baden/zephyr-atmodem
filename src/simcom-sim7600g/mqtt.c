@@ -46,8 +46,8 @@ MODEM_CMD_DEFINE(on_cmd_mqtt_connect)
 
 static int mqtt_connect(struct modem_data *mdata, const char* host, uint16_t port)
 {
-    char send_buf[sizeof("AT+CMQTTCONNECT=0,\"tcp://#######################:####\",60,1")] = {0};
-    snprintk(send_buf, sizeof(send_buf), "AT+CMQTTCONNECT=0,\"tcp://%s:%d\",30,1", host, port);
+    char send_buf[sizeof("AT+CMQTTCONNECT=0,\"tcp://#######################:####\",240,1")] = {0};
+    snprintk(send_buf, sizeof(send_buf), "AT+CMQTTCONNECT=0,\"tcp://%s:%d\",240,1", host, port);
     struct modem_cmd handler_cmd = MODEM_CMD("+CMQTTCONNECT: ", on_cmd_mqtt_connect, 2U, ",");
     return simcom_cmd_with_simple_wait_answer(mdata,
         send_buf, &handler_cmd, 1U, K_SECONDS(31)
