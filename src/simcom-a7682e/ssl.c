@@ -79,6 +79,15 @@ int simcom_ssl_certmove(const struct device *dev, const char *filename)
     return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
 }
 
+// AT+CCERTDELE="<filename>"
+int simcom_ssl_certremove(const struct device *dev, const char *filename)
+{
+    char send_buf[sizeof("AT+CCERTDELE=\"##############################\"")] = {0};
+    snprintk(send_buf, sizeof(send_buf), "AT+CCERTDELE=\"%s\"", filename);
+    struct modem_data *mdata = (struct modem_data *)dev->data;
+    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
+}
+
 // List certificates
 // AT+CCERTLIST
 int simcom_ssl_certlist(const struct device *dev)

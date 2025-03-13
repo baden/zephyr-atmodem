@@ -29,6 +29,7 @@ int simcom_ssl_configure(const struct device *dev, int ssl_ctx_index, const stru
 
 int simcom_ssl_download_cert(const struct device *dev, const char* filename, const char *ssl_ca_cert, size_t ssl_ca_cert_len);
 int simcom_ssl_certmove(const struct device *dev, const char *filename);
+int simcom_ssl_certremove(const struct device *dev, const char *filename);
 int simcom_ssl_certlist(const struct device *dev);
 int simcom_ssl_set_ignorertctime(const struct device *dev, int ssl_ctx_index);
 int simcom_ssl_set_var(const struct device *dev, int ssl_ctx_index, const char *param, int value);

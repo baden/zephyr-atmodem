@@ -24,20 +24,28 @@ static int mqtt_start(struct modem_data *mdata)
     );
 }
 
-int simcom_mqtt_start(struct device *dev)
-{
-    struct modem_data *mdata = dev->data;
-    return mqtt_start(mdata);
-}
+// int simcom_mqtt_start(struct device *dev)
+// {
+//     struct modem_data *mdata = dev->data;
+//     return mqtt_start(mdata);
+// }
 
 // Acquire a MQTT client
 // AT+CMQTTACCQ=<client_index>,<clientID>[<server_type>]
 static int mqtt_acq(struct modem_data *mdata, int client_index, const char* client_id, int server_type)
 {
-    char send_buf[sizeof("AT+CMQTTACCQ=#,\"#######################\",#")] = {0};
+    char send_buf[sizeof("AT+CMQTTACCQ=#,\"##############################################\",#")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CMQTTACCQ=%d,\"%s\",%d", client_index, client_id, server_type);
     return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler,
         NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(3)
+    );
+}
+
+// AT+CMQTTREL Release a client
+static int mqtt_rel(struct modem_data *mdata)
+{
+    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler,
+        NULL, 0U, "AT+CMQTTREL=0", &mdata->sem_response, K_SECONDS(3)
     );
 }
 
@@ -53,8 +61,8 @@ MODEM_CMD_DEFINE(on_cmd_mqtt_connect)
 
 static int mqtt_connect(struct modem_data *mdata, const char* host, uint16_t port)
 {
-    char send_buf[sizeof("AT+CMQTTCONNECT=0,\"tcp://#######################:####\",60,1")] = {0};
-    snprintk(send_buf, sizeof(send_buf), "AT+CMQTTCONNECT=0,\"tcp://%s:%d\",30,1", host, port);
+    char send_buf[sizeof("AT+CMQTTCONNECT=0,\"tcp://#######################:####\",600,1")] = {0};
+    snprintk(send_buf, sizeof(send_buf), "AT+CMQTTCONNECT=0,\"tcp://%s:%d\",60,0", host, port);
     struct modem_cmd handler_cmd = MODEM_CMD("+CMQTTCONNECT: ", on_cmd_mqtt_connect, 2U, ",");
     return simcom_cmd_with_simple_wait_answer(mdata,
         send_buf, &handler_cmd, 1U, K_SECONDS(31)
@@ -75,15 +83,8 @@ static int mqtt_disconnect(struct modem_data *mdata)
 {
     struct modem_cmd handler_cmd = MODEM_CMD("+CMQTTDISC: ", on_cmd_mqtt_disconnect, 2U, ",");
     return simcom_cmd_with_simple_wait_answer(mdata,
-        "AT+CMQTTDISC=0,30", &handler_cmd, 1U, K_SECONDS(31)
+        "AT+CMQTTDISC=0,60", &handler_cmd, 1U, K_SECONDS(31)
     );
-}
-
-// AT+CMQTTREL=0
-static int mqtt_rel(struct modem_data *mdata)
-{
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler,
-        NULL, 0U, "AT+CMQTTREL=0", &mdata->sem_response, K_SECONDS(3));
 }
 
 // +CMQTTSTOP: 0
@@ -116,7 +117,7 @@ int simcom_mqtt_subscribe(const struct device *dev /*struct modem_data *mdata*/,
 {
     char send_buf[sizeof("AT+CMQTTSUB=0,##########,1")] = {0};
     LOG_ERR("simcom_mqtt_subscribe: [%s]", topic);
-    snprintk(send_buf, sizeof(send_buf), "AT+CMQTTSUB=0,%d,1", strlen(topic));
+    snprintk(send_buf, sizeof(send_buf), "AT+CMQTTSUB=0,%d,%d", strlen(topic), qos);
     struct modem_data *mdata = dev->data;
     struct modem_cmd handler_cmd = MODEM_CMD("+CMQTTSUB: ", on_cmd_subed, 2U, ",");
     return simcom_cmd_with_direct_payload(mdata, send_buf, topic, strlen(topic), &handler_cmd, K_MSEC(5000));
@@ -223,22 +224,55 @@ static int _mqtt_set_ssl_ctx(struct modem_data *mdata, int session_id, int ssl_c
     return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(3));
 }
 
-int simcom_mqtt_connect(const struct device *dev, const char* host, uint16_t port, const char* client_id)
+int simcom_mqtt_start(const struct device *dev, const char* client_id)
 {
     int ret;
     struct modem_data *mdata = dev->data;
     ret = mqtt_start(mdata);
-    if (ret < 0) return ret;
+    if (ret < 0) {
+        ret = mqtt_stop(mdata);
+        ret = mqtt_start(mdata);
+        if (ret < 0) {
+            // return ret;
+        }
+    }
+
     #if defined(CONFIG_MQTT_USESSL) && (CONFIG_MQTT_USESSL == 1)
         // Acquire one client which will connect to a SSL/TLS MQTT server
         ret = mqtt_acq(mdata, 0, client_id, 1); // SSL
         if (ret < 0) return ret;
         // Set the first SSL context to be used in the SSL connection
-        _mqtt_set_ssl_ctx(mdata, 0, CONFIG_MQTT_SSL_CTX_INDEX);
+        // _mqtt_set_ssl_ctx(mdata, 0, CONFIG_MQTT_SSL_CTX_INDEX);
     #else
         // Acquire one client which will connect to a non-SSL/TLS MQTT server
-        ret = mqtt_acq(mdata, 0, client_id, 0); // Non-SSL
+        int ret = mqtt_acq(mdata, 0, client_id, 0); // Non-SSL
         if (ret < 0) return ret;
+    #endif
+
+    return 0;
+}
+
+int simcom_mqtt_stop(const struct device *dev)
+{
+    struct modem_data *mdata = dev->data;
+    mqtt_rel(mdata);
+    return mqtt_stop(mdata);
+}
+
+int simcom_mqtt_connect(const struct device *dev, const char* host, uint16_t port)
+{
+    struct modem_data *mdata = dev->data;
+
+    #if defined(CONFIG_MQTT_USESSL) && (CONFIG_MQTT_USESSL == 1)
+        // // Acquire one client which will connect to a SSL/TLS MQTT server
+        // int ret = mqtt_acq(mdata, 0, client_id, 1); // SSL
+        // if (ret < 0) return ret;
+        // Set the first SSL context to be used in the SSL connection
+        _mqtt_set_ssl_ctx(mdata, 0, CONFIG_MQTT_SSL_CTX_INDEX);
+    #else
+        // // Acquire one client which will connect to a non-SSL/TLS MQTT server
+        // int ret = mqtt_acq(mdata, 0, client_id, 0); // Non-SSL
+        // if (ret < 0) return ret;
     #endif
 
     // Set the will topic for the CONNECT message (TBD)
@@ -246,16 +280,29 @@ int simcom_mqtt_connect(const struct device *dev, const char* host, uint16_t por
     // Set the will message for the CONNECT message (TBD)
     // AT+CMQTTWILLMSG=0,6,1
 
-
     // Set the first SSL context to be used in the SSL connection
-    ret = mqtt_connect(mdata, host, port);
-
-    return ret;
+    return mqtt_connect(mdata, host, port);
 }
 
-int simcom_mqtt_disconnect(struct modem_data *mdata)
+// AT+CMQTTCONNECT?
+// Очікуємо відповідь якшо немає з'єднання
+// +CMQTTCONNECT: 0
+// +CMQTTCONNECT: 1
+//
+// Очікуємо відповідь якшо є з'єднання
+// +CMQTTCONNECT: 0,"tcp://5.187.3.28:8883",600,1
+// +CMQTTCONNECT: 1
+
+int simcom_mqtt_connected(const struct device *dev)
+{
+    struct modem_data *mdata = dev->data;
+    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, "AT+CMQTTCONNECT?", &mdata->sem_response, K_SECONDS(3));
+}
+
+int simcom_mqtt_disconnect(const struct device *dev)
 {
     int ret;
+    struct modem_data *mdata = dev->data;
     ret = mqtt_disconnect(mdata);   // Maybe no need?
     ret = mqtt_rel(mdata);          // Release client
     ret = mqtt_stop(mdata);         // Stop MQTT service
