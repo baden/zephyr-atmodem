@@ -1,3 +1,4 @@
+#include <stdlib.h> // strtol
 #include "mqtt.h"
 #include "common.h"
 
@@ -54,7 +55,10 @@ static int mqtt_rel(struct modem_data *mdata)
 MODEM_CMD_DEFINE(on_cmd_mqtt_connect)
 {
 	struct modem_data *mdata = CONTAINER_OF(data, struct modem_data, cmd_handler_data);
-    modem_cmd_handler_set_error(data, (argv[1][0] == '0') ? 0 : -EIO);
+    int client_index = atoi(argv[0]);
+    bool connected = (argv[1][0] == '0') ? true : false;
+    modem_cmd_handler_set_error(data, connected ? 0 : -EIO);
+    mdata->mqtt_states[client_index] = connected ? MQTT_STATE_CONNECTED : MQTT_STATE_DISCONNECTED;
     k_sem_give(&mdata->sem_response);
     return 0;
 }
@@ -69,9 +73,13 @@ static int mqtt_connect(struct modem_data *mdata, const char* host, uint16_t por
     );
 }
 
+// +CMQTTDISC: <client_index>,<err>
 MODEM_CMD_DEFINE(on_cmd_mqtt_disconnect)
 {
 	struct modem_data *mdata = CONTAINER_OF(data, struct modem_data, cmd_handler_data);
+    int client_index = atoi(argv[0]);
+    // int err = atoi(argv[1]);
+    mdata->mqtt_states[client_index] = MQTT_STATE_DISCONNECTED;
     modem_cmd_handler_set_error(data, 0);   //  Always OK
     k_sem_give(&mdata->sem_response);
     return 0;
@@ -292,11 +300,38 @@ int simcom_mqtt_connect(const struct device *dev, const char* host, uint16_t por
 // Очікуємо відповідь якшо є з'єднання
 // +CMQTTCONNECT: 0,"tcp://5.187.3.28:8883",600,1
 // +CMQTTCONNECT: 1
-
-int simcom_mqtt_connected(const struct device *dev)
+/* Handler: +CMQTTCONNECT: 0[,"tcp://5.187.3.28:8883",600,1] */
+MODEM_CMD_DEFINE(on_cmd_cmqttconnect)
 {
+   	struct modem_data *mdata = CONTAINER_OF(data, struct modem_data, cmd_handler_data);
+
+    // LOG_ERR("(c:%d) 0:[%s] 1:[%s]", argc, argv[0], argv[1]);
+    int client_index = atoi(argv[0]);
+
+    if(argc == 1) {
+        // No connection
+        // modem_cmd_handler_set_error(data, 0);
+        // k_sem_give(&mdata->sem_response);
+        mdata->mqtt_states[client_index] = MQTT_STATE_DISCONNECTED;
+        return 0;
+    }
+
+	/* Log the received information. */
+	// LOG_INF("Model: %s", /*log_strdup(*/mdata.modem_id.mdm_model/*)*/);
+	return 0;
+}
+
+int simcom_mqtt_connected(const struct device *dev, bool *connected)
+{
+    int ret = 0;
     struct modem_data *mdata = dev->data;
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, "AT+CMQTTCONNECT?", &mdata->sem_response, K_SECONDS(3));
+    // Сподіваюсь шо локальне перехоплення +CMQTTCONNECT: перекриє глобальне
+    const struct modem_cmd cmd = MODEM_CMD_ARGS_MAX("+CMQTTCONNECT: ", on_cmd_cmqttconnect, 1U, 2U, ",");
+    ret = modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, &cmd, 1U, "AT+CMQTTCONNECT?", &mdata->sem_response, K_SECONDS(3));
+    if (connected) {
+        *connected = (mdata->mqtt_states[0] == MQTT_STATE_CONNECTED);
+    }
+    return ret;
 }
 
 int simcom_mqtt_disconnect(const struct device *dev)
@@ -438,6 +473,7 @@ void mqtt_on_rxend(struct modem_data *mdata, int client_index)
 void lte_mqtt_lost_connection();
 void mqtt_on_connlost(struct modem_data *mdata, int client_index, int cause)
 {
+    mdata->mqtt_states[client_index] = MQTT_STATE_DISCONNECTED;g
     LOG_ERR("on_cmd_mqtt_connlost: client_index=%d, cause=%d", client_index, cause);
     // TODO: temporary solution. dirty hack
     lte_mqtt_lost_connection();

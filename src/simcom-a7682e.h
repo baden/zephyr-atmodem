@@ -12,6 +12,13 @@
 #define MDM_RECV_BUF_SIZE		  (1024)
 #define MDM_REGISTRATION_TIMEOUT  K_SECONDS(10)
 
+enum mqtt_state {
+    MQTT_STATE_DISCONNECTED,
+    MQTT_STATE_CONNECTING,
+    MQTT_STATE_CONNECTED,
+    MQTT_STATE_DISCONNECTING,
+};
+
 /* driver data */
 struct modem_data {
     /* modem context */
@@ -34,6 +41,8 @@ struct modem_data {
 	 * Current state of the modem.
 	 */
 	enum atmodem_state state;
+
+    enum mqtt_state mqtt_states[2];
 
     atmodem_event_cb_t event_cb;
 
