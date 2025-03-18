@@ -14,7 +14,7 @@ int simcom_mqtt_connect(const struct device *dev, const char* host, uint16_t por
 int simcom_mqtt_disconnect(const struct device *dev);
 int simcom_mqtt_subscribe(const struct device *dev/*struct modem_data *mdata*/, const char* topic, int qos);
 
-int simcom_mqtt_connected(const struct device *dev);
+int simcom_mqtt_connected(const struct device *dev, bool *connected);
 
 
 #define CONFIG_MQTT_SSL_CTX_INDEX 1
