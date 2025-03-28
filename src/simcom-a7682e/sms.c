@@ -354,6 +354,8 @@ static int intlength(int v)
 // +CMGR: "REC READ","7512110511811511697114","","21/11/26,09:12:02+08",208,96,0,8,"+380672020020",145,67
 //        0          1                        2  3         4            5   6  7 8 9               10  11
 
+
+
 static int sms_incoming_handler(void *payload, size_t payload_size)
 {
    	// struct modem_data *mdata = CONTAINER_OF(data, struct modem_data, cmd_handler_data);
@@ -554,6 +556,20 @@ static size_t net_buf_linearize_utf8(char *dst, size_t dst_len, const struct net
     return copied;
 }
 #endif
+
+// TODO: Чомусь я отримав отак:
+/*
+[141:39:24.085,000] <err> cdc_acm_echo: 2:+CMTI: "ME",4
+[141:39:24.194,000] <inf> cdc_acm_echo: 1:AT+CSCS="UCS2";+CSMP=17,167,0,25
+[141:39:24.202,000] <err> cdc_acm_echo: 2:AT+CSCS="UCS2";+CSMP=17,167,0,25
+[141:39:24.291,000] <err> cdc_acm_echo: 2:OK
+[141:39:24.294,000] <inf> cdc_acm_echo: 1:AT+CMGR=4
+[141:39:24.296,000] <err> cdc_acm_echo: 2:AT+CMGR=4
+[141:39:24.308,000] <err> cdc_acm_echo: 2:+CMGR: "REC UNREAD","002B003300380030003600370039003300330032003300330032","","25/03/19,16:13:35+8"
+[141:39:24.310,000] <err> cdc_acm_echo: 2:004C0069006E006B
+[141:39:24.310,000] <err> cdc_acm_echo: 2:OK
+*/
+
 
 MODEM_CMD_DEFINE(on_cmd_cmgr)
 {

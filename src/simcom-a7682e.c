@@ -251,11 +251,13 @@ static struct modem_id_data *get_id(const struct device *dev)
     return &mdata->modem_id;
 }
 
+#if defined(CONFIG_MODEM_SMS)
 static int send_sms(const struct device *dev, const char *phone, const char *message)
 {
     struct modem_data *mdata = (struct modem_data *)dev->data;
     return simcom_send_sms(mdata, phone, message);
 }
+#endif
 
 static int setup(const struct device *dev)
 {
