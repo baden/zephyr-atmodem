@@ -473,7 +473,7 @@ void mqtt_on_rxend(struct modem_data *mdata, int client_index)
 void lte_mqtt_lost_connection();
 void mqtt_on_connlost(struct modem_data *mdata, int client_index, int cause)
 {
-    mdata->mqtt_states[client_index] = MQTT_STATE_DISCONNECTED;g
+    mdata->mqtt_states[client_index] = MQTT_STATE_DISCONNECTED;
     LOG_ERR("on_cmd_mqtt_connlost: client_index=%d, cause=%d", client_index, cause);
     // TODO: temporary solution. dirty hack
     lte_mqtt_lost_connection();
