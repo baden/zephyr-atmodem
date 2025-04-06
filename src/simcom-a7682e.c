@@ -69,6 +69,7 @@ static int init(const struct device *dev)
 
     k_sem_init(&mdata->sem_response,	 0, 1);
     k_sem_init(&mdata->sem_tx_ready,	 0, 1);
+    k_sem_init(&mdata->sem_http_action_response, 0, 1);
     k_sem_init(&mdata->sem_http_file_read, 0, 1);
 
 	/* initialize the work queue */
