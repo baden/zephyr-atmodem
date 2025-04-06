@@ -51,6 +51,7 @@ struct modem_data {
     struct k_sem sem_tx_ready;
 
     /* Post OK commands semaphores */
+    struct k_sem sem_http_action_response;
     struct k_sem sem_http_file_read;
 
 	/* work */

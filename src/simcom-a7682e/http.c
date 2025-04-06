@@ -132,7 +132,7 @@ MODEM_CMD_DEFINE(on_cmd_http_action)
             , http_last_action_result.status_code
             , http_last_action_result.datalen );
     modem_cmd_handler_set_error(data, 0);   //  -EIO
-    k_sem_give(&mdata->sem_response);
+    k_sem_give(&mdata->sem_http_action_response);
     // k_sem_give(&http_action);
 	// k_sem_give(&dev->sem_response);
 	return 0;
@@ -153,11 +153,11 @@ static int modem_http_doit(struct modem_data *mdata, enum http_method method)
         LOG_ERR("Error HTTPACTION= command");
         goto out;
     }
-    k_sem_reset(&mdata->sem_response);
+    k_sem_reset(&mdata->sem_http_action_response);
 
     /* Wait for '+HTTPACTION:' or '??' FAIL */
     // LOG_ERR("-------> 1");
-	ret = k_sem_take(&mdata->sem_response, K_SECONDS(120));
+	ret = k_sem_take(&mdata->sem_http_action_response, K_SECONDS(120));
     // k_sleep(K_SECONDS(2));
     // LOG_ERR("-------> 2");
     // k_sleep(K_SECONDS(2));
