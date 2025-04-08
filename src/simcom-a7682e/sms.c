@@ -32,12 +32,12 @@ uint8_t modem_send_sms_stages = 0;
 // AT+CMGF=1
 static int modem_send_sms_text_format(struct modem_data *mdata)
 {
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, "AT+CMGF=1", &mdata->sem_response, K_SECONDS(2));
+    return simcom_cmd(mdata, "AT+CMGF=1", K_SECONDS(2));
 }
 
 static int modem_send_sms_select_message_service0(struct modem_data *mdata)
 {
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, "AT+CSMS=0", &mdata->sem_response, K_SECONDS(2));
+    return simcom_cmd(mdata, "AT+CSMS=0", K_SECONDS(2));
 }
 
 // static int modem_send_sms_select_message_service1()
@@ -47,7 +47,7 @@ static int modem_send_sms_select_message_service0(struct modem_data *mdata)
 
 static int modem_send_sms_preffered_message_storage_me(struct modem_data *mdata)
 {
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, "AT+CPMS=\"ME\",\"ME\",\"ME\"", &mdata->sem_response, K_SECONDS(2));
+    return simcom_cmd(mdata, "AT+CPMS=\"ME\",\"ME\",\"ME\"", K_SECONDS(2));
 }
 
 /*static*/ int modem_char_set(struct modem_data *mdata, t_sms_charset charset, t_sms_flags flags)
@@ -80,7 +80,7 @@ static int modem_send_sms_preffered_message_storage_me(struct modem_data *mdata)
             break;
     }
 
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(2));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(2));
 }
 
 // Convert each code to 16-bit UCS2
@@ -714,24 +714,15 @@ static int modem_check_sms(struct modem_data *mdata, int index)
         goto exit;
     }
 
-    //#if defined(CONFIG_DEBUG_SMS)
-    // naviccAddLogSimple("Got SMS: %s from %s", sms_body, sms_sender);
-    //#endif
 exit:
     return ret;
 }
 
 static int modem_delete_sms(struct modem_data *mdata, int index)
 {
-    int  ret;
 	char send_buf[sizeof("AT+CMGD=##,##")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CMGD=%d,1", index);
-    ret = modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(2));
-    if (ret < 0) {
-        LOG_ERR("Error deleting SMS: (%d)", ret);
-        return ret;
-    }
-    return 0;
+    return simcom_cmd(mdata, send_buf, K_SECONDS(2));
 }
 
 static int check_sms(struct modem_data *mdata, int index)

@@ -1,5 +1,4 @@
 #include "voice.h"
-#include "common.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(modem_a7682e, CONFIG_MMODEM_LOG_LEVEL);
@@ -51,7 +50,7 @@ int simcom_voice_answer_call(const struct device *dev)
     // snprintk(send_buf, sizeof(send_buf), "ATA", strlen(topic));
     struct modem_data *mdata = dev->data;
     // struct modem_cmd handler_cmd = MODEM_CMD("+CMQTTSUB: ", on_cmd_subed, 2U, ",");
-    return modem_direct_cmd(mdata, "ATA");
+    return simcom_cmd(mdata, "ATA", K_SECONDS(3));
 }
 
 int simcom_voice_call(const struct device *dev, const char* phone)

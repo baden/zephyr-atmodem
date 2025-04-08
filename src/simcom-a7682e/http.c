@@ -32,7 +32,7 @@ int simcom_http_init(const struct device *dev)
 int modem_http_done(struct modem_data *mdata)
 {
     const char *send_buf = "AT+HTTPTERM";
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(3));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(3));
 }
 
 int simcom_http_done(const struct device *dev)
@@ -46,10 +46,8 @@ int simcom_http_set_cid(const struct device *dev, int cid)
     struct modem_data *mdata = (struct modem_data *)dev->data;
     char send_buf[sizeof("AT+HTTPPARA=\"CID\",#")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+HTTPPARA=\"CID\",%d", cid);
-
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(2));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(2));
 }
-
 
 // AT+HTTPPARA="URL","<url>"
 // AT+HTTPPARA="CONNECTTO",<conn_timeout>
@@ -66,16 +64,14 @@ static int modem_http_set_content_type(struct modem_data *mdata, const char* con
 {
     char send_buf[sizeof("AT+HTTPPARA=\"CONTENT\",\"#########################################\"")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+HTTPPARA=\"CONTENT\",\"%s\"", content_type);
-
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(2));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(2));
 }
 
 static int modem_http_set_accept_type(struct modem_data *mdata, const char* content_type)
 {
     char send_buf[sizeof("AT+HTTPPARA=\"ACCEPT\",\"#########################################\"")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+HTTPPARA=\"ACCEPT\",\"%s\"", content_type);
-
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(2));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(2));
 }
 
 static int modem_http_set_user_data(struct modem_data *mdata, const char* value)
@@ -83,16 +79,14 @@ static int modem_http_set_user_data(struct modem_data *mdata, const char* value)
     // struct modem_data *mdata = dev->data;
     char send_buf[sizeof("AT+HTTPPARA=\"USERDATA\",\"#########################################\"")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+HTTPPARA=\"USERDATA\",\"%s\"", value);
-
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(2));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(2));
 }
 
 int modem_http_set_ssl_cfg(struct modem_data *mdata, int id)
 {
     char send_buf[sizeof("AT+HTTPPARA=\"SSLCFG\",#####")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+HTTPPARA=\"SSLCFG\",%d", id);
-
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(2));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(2));
 }
 
 
@@ -109,8 +103,7 @@ static int modem_http_set_url(struct modem_data *mdata, const char* url)
 {
     char send_buf[256] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+HTTPPARA=\"URL\",\"%s\"", url);
-
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(2));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(2));
 }
 
 // TODO: Move to modem_data or somewhere else

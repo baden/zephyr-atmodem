@@ -62,6 +62,7 @@ static int init(const struct device *dev)
 {
     int ret = 0;
 	struct modem_data *mdata = dev->data;
+    mdata->dev = dev;
 
     struct device *uart_dev = (struct device *)MDM_UART_DEV;
 	LOG_INF("SIMCOM SIM7600G LTE-modem (@UART:%s)", uart_dev->name);

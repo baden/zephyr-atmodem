@@ -5,6 +5,7 @@
 #include "drivers/at-modem.h"
 #include "modem_cmd_handler.h"
 #include "modem_iface_uart.h"
+// #include "simcom-a7682e/common.h"
 
 #define MDM_UART_DEV			  DEVICE_DT_GET(DT_INST_BUS(0))
 #define MDM_MAX_DATA_LENGTH		  (1024)
@@ -21,6 +22,8 @@ enum mqtt_state {
 
 /* driver data */
 struct modem_data {
+    const struct device *dev;
+
     /* modem context */
     struct modem_context    mctx;
 
@@ -88,4 +91,28 @@ union _init_stages {
 };
 
 // TODO: Remove me
-int modem_direct_cmd(struct modem_data *mdata, const char* cmd);
+// int modem_direct_cmd(struct modem_data *mdata, const char* cmd);
+
+
+int simcom_cmd(struct modem_data *mdata, const char *send_buf, k_timeout_t timeout);
+
+// Commands with simple wait answer
+int simcom_cmd_with_simple_wait_answer(
+    struct modem_data *mdata,
+    const char *send_buf,
+    const struct modem_cmd handler_cmds[],
+    size_t handler_cmds_len,
+    k_timeout_t timeout
+);
+
+// Command to send data to the modem after the ">" symbol
+int simcom_cmd_with_direct_payload(struct modem_data *mdata,
+    const char *send_buf,
+    const char *data,
+    size_t data_len,
+    const struct modem_cmd *one_handler_cmds,
+    k_timeout_t timeout
+);
+
+
+int simcom_at(const struct device *dev);
