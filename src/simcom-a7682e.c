@@ -386,7 +386,7 @@ static bool simcom_STATUS_pin_is_present(struct modem_data *mdata)
     const struct device *dev = mdata->dev;
     const struct modem_config *config = dev->config;
 
-    LOG_ERR("Pointer of &config->status: %p [%d]", &config->status, gpio_pin_get_dt(&config->status));
+    // LOG_ERR("Pointer of &config->status: %p [%d]", &config->status, gpio_pin_get_dt(&config->status));
     // Check STATUS pin
     bool is_status_present = (gpio_pin_get_dt(&config->status) == 1);
     if(!is_status_present) {
