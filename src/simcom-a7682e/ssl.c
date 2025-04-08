@@ -1,6 +1,5 @@
 #include "ssl.h"
 #include <stdlib.h>
-#include "common.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(modem_a7682e, CONFIG_MMODEM_LOG_LEVEL);
@@ -14,7 +13,7 @@ int simcom_ssl_set_version(const struct device *dev, int ssl_ctx_index, int ssl_
     char send_buf[sizeof("AT+CSSLCFG=\"sslversion\",#,#####")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CSSLCFG=\"sslversion\",%d,%d", ssl_ctx_index, ssl_version);
     struct modem_data *mdata = (struct modem_data *)dev->data;
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(10));
 }
 
 // Set the authentication mode(verify server and client) of the specified SSL context
@@ -24,7 +23,7 @@ int simcom_ssl_set_authmode(const struct device *dev, int ssl_ctx_index, int aut
     char send_buf[sizeof("AT+CSSLCFG=\"authmode\",#,#####")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CSSLCFG=\"authmode\",%d,%d", ssl_ctx_index, authmode);
     struct modem_data *mdata = (struct modem_data *)dev->data;
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(10));
 }
 
 // Set the server root CA of the specified SSL context
@@ -34,7 +33,7 @@ int simcom_ssl_set_cacert(const struct device *dev, int ssl_ctx_index, const cha
     char send_buf[sizeof("AT+CSSLCFG=\"cacert\",#,\"##########################\"")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CSSLCFG=\"cacert\",%d,\"%s\"", ssl_ctx_index, ca_file);
     struct modem_data *mdata = (struct modem_data *)dev->data;
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(10));
 }
 
 // Set the client certificate of the specified SSL context
@@ -44,7 +43,7 @@ int simcom_ssl_set_clientcert(const struct device *dev, int ssl_ctx_index, const
     char send_buf[sizeof("AT+CSSLCFG=\"clientcert\",#,\"#####################\"")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CSSLCFG=\"clientcert\",%d,\"%s\"", ssl_ctx_index, clientcert_file);
     struct modem_data *mdata = (struct modem_data *)dev->data;
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(10));
 }
 
 // Set the client key of the specified SSL context
@@ -54,7 +53,7 @@ int simcom_ssl_set_clientkey(const struct device *dev, int ssl_ctx_index, const 
     char send_buf[sizeof("AT+CSSLCFG=\"clientkey\",#,\"#####################\"")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CSSLCFG=\"clientkey\",%d,\"%s\"", ssl_ctx_index, clientkey_file);
     struct modem_data *mdata = (struct modem_data *)dev->data;
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(10));
 }
 
 
@@ -76,7 +75,7 @@ int simcom_ssl_certmove(const struct device *dev, const char *filename)
     char send_buf[sizeof("AT+CCERTMOVE=\"##############################\"")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CCERTMOVE=\"%s\"", filename);
     struct modem_data *mdata = (struct modem_data *)dev->data;
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(10));
 }
 
 // AT+CCERTDELE="<filename>"
@@ -85,7 +84,7 @@ int simcom_ssl_certremove(const struct device *dev, const char *filename)
     char send_buf[sizeof("AT+CCERTDELE=\"##############################\"")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CCERTDELE=\"%s\"", filename);
     struct modem_data *mdata = (struct modem_data *)dev->data;
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(10));
 }
 
 // List certificates
@@ -95,7 +94,7 @@ int simcom_ssl_certlist(const struct device *dev)
     char send_buf[sizeof("AT+CCERTLIST")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CCERTLIST");
     struct modem_data *mdata = (struct modem_data *)dev->data;
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(10));
 }
 
 int simcom_ssl_set_ignorertctime(const struct device *dev, int ssl_ctx_index)
@@ -104,7 +103,7 @@ int simcom_ssl_set_ignorertctime(const struct device *dev, int ssl_ctx_index)
     // snprintk(send_buf, sizeof(send_buf), "AT+CSSLCFG=\"ignorertctime\",%d,1", ssl_ctx_index);
     snprintk(send_buf, sizeof(send_buf), "AT+CSSLCFG=\"ignorelocaltime\",%d,1", ssl_ctx_index);
     struct modem_data *mdata = (struct modem_data *)dev->data;
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(10));
 }
 
 
@@ -113,7 +112,7 @@ int simcom_ssl_set_var(const struct device *dev, int ssl_ctx_index, const char *
     char send_buf[sizeof("AT+CSSLCFG=\"###################\",#,###########################")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CSSLCFG=\"%s\",%d,%d", param, ssl_ctx_index, value);
     struct modem_data *mdata = (struct modem_data *)dev->data;
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(10));
 }
 
 // Configure the SSL context
@@ -186,8 +185,9 @@ int simcom_ssl_stop(const struct device *dev)
 int simcom_ssl_set_context(const struct device *dev, int session_id, int ssl_ctx_index)
 {
     char send_buf[sizeof("AT+CCHSSLCFG=##,##")] = {0};
+    struct modem_data *mdata = (struct modem_data *)dev->data;
     snprintk(send_buf, sizeof(send_buf), "AT+CCHSSLCFG=%d,%d", session_id, ssl_ctx_index);
-    return simcom_cmd(dev, send_buf);
+    return simcom_cmd(mdata, send_buf, K_SECONDS(3));
 }
 
 // AT+CCHOPEN Connect to server

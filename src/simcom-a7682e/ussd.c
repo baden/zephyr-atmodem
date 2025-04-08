@@ -1,5 +1,4 @@
 #include "ussd.h"
-#include "common.h"
 #include "sms.h"
 #include "drivers/at-modem.h"
 
@@ -14,6 +13,6 @@ int simcom_ussd_request(const struct device *dev, const char *code)
     // modem_char_set(mdata, GSM_CHARSET_GSM, SMS_FLAGS_DEFAULT);
    
     snprintk(send_buf, sizeof(send_buf), "AT+CUSD=1,\"%s\",15", code);
-    return modem_direct_cmd(mdata, send_buf);
+    return simcom_cmd(mdata, send_buf, K_SECONDS(3));
 }
 

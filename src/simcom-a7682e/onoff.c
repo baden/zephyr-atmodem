@@ -24,10 +24,11 @@ static bool pin_init(const struct modem_config *config)
     // status_state = gpio_pin_get_dt(&config->status);
     // LOG_DBG("gsm_start: STATUS is %d", status_state);
 
+    LOG_ERR("Pointer of &config->status: %p", &config->status);
     gpio_pin_configure_dt(&config->status, GPIO_INPUT);
     k_sleep(K_MSEC(100));
     status_state = gpio_pin_get_dt(&config->status);
-    // LOG_DBG("gsm_start: STATUS is %d", status_state);
+    LOG_ERR("gsm_start: STATUS is %d", status_state);
 
 	gpio_pin_configure_dt(&config->dtr, GPIO_OUTPUT);
 	gpio_pin_set_dt(&config->dtr, 0);							// TODO: Set to 1 for entering sleep mode
@@ -79,6 +80,7 @@ static bool pin_init(const struct modem_config *config)
             return -1;
         }
         LOG_DBG("gsm_start: STATUS goted for %d secs", timeout);
+        LOG_ERR("gsm_start: STATUS is %d", gpio_pin_get_dt(&config->status));
     }
 
     return false;

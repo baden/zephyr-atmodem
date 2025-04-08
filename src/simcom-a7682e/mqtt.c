@@ -1,6 +1,5 @@
 #include <stdlib.h> // strtol
 #include "mqtt.h"
-#include "common.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(modem_a7682e, CONFIG_MMODEM_LOG_LEVEL);
@@ -37,17 +36,13 @@ static int mqtt_acq(struct modem_data *mdata, int client_index, const char* clie
 {
     char send_buf[sizeof("AT+CMQTTACCQ=#,\"##############################################\",#")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CMQTTACCQ=%d,\"%s\",%d", client_index, client_id, server_type);
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler,
-        NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(3)
-    );
+    return simcom_cmd(mdata, send_buf, K_SECONDS(3));
 }
 
 // AT+CMQTTREL Release a client
 static int mqtt_rel(struct modem_data *mdata)
 {
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler,
-        NULL, 0U, "AT+CMQTTREL=0", &mdata->sem_response, K_SECONDS(3)
-    );
+    return simcom_cmd(mdata, "AT+CMQTTREL=0", K_SECONDS(3));
 }
 
 // AT+CMQTTCONNECT=0,"tcp://test.mosquitto. org:1883",60,1
@@ -229,7 +224,7 @@ static int _mqtt_set_ssl_ctx(struct modem_data *mdata, int session_id, int ssl_c
 {
     char send_buf[sizeof("AT+CMQTTSSLCFG=#,#")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CMQTTSSLCFG=%d,%d", session_id, ssl_ctx_index);
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(3));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(3));
 }
 
 int simcom_mqtt_start(const struct device *dev, const char* client_id)

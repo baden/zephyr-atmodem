@@ -80,5 +80,5 @@ int simcom_dns_config(const struct device *dev, const char* primary_dns, const c
 
     char send_buf[sizeof("AT+CDNSCFG=###.###.###.###,###.###.###.###")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CDNSCFG=%s,%s", primary_dns, secondary_dns);
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(3));    
+    return simcom_cmd(mdata, send_buf, K_SECONDS(3));
 }

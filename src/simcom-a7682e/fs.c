@@ -1,5 +1,4 @@
 #include "fs.h"
-#include "common.h"
 #include "../utils.h"
 // #include "lz4.h"
 
@@ -11,7 +10,7 @@ LOG_MODULE_DECLARE(modem_a7682e, CONFIG_MMODEM_LOG_LEVEL);
 int simcom_files_meminfo(const struct device *dev)
 {
     struct modem_data *mdata = dev->data;
-    return modem_direct_cmd(mdata, "AT+FSMEM");
+    return simcom_cmd(mdata, "AT+FSMEM", K_SECONDS(3));
 }
 
 
@@ -22,7 +21,7 @@ int simcom_files_cd(const struct device *dev, const char *path)
     char send_buf[sizeof("AT+FSCD=\"###########################\"")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+FSCD=\"%s\"", path);
     struct modem_data *mdata = dev->data;
-    return modem_direct_cmd(mdata, send_buf);
+    return simcom_cmd(mdata, send_buf, K_SECONDS(3));
 }
 
 // AT+FSMKDIR Make new directory in current directory
@@ -39,8 +38,7 @@ int simcom_files_mkdir(const struct device *dev, const char *dir)
     // return modem_direct_cmd(mdata, "AT+FSMKDIR=amr");
     
     // return modem_direct_cmd(mdata, "AT+FSMKDIR=?");
-    return modem_direct_cmd(mdata, "AT*SELECTVSIM=?");
-
+    return simcom_cmd(mdata, "AT*SELECTVSIM=?", K_SECONDS(3));
 }
 
 // AT+FSLS List directories/files in current directory
@@ -55,7 +53,7 @@ int simcom_files_ls(const struct device *dev, int type)
     // snprintk(send_buf, sizeof(send_buf), "AT+FSLS=%d", type);
     snprintk(send_buf, sizeof(send_buf), "AT+FSLS");
     struct modem_data *mdata = dev->data;
-    return modem_direct_cmd(mdata, send_buf);
+    return simcom_cmd(mdata, send_buf, K_SECONDS(3));
 }
 
 
@@ -70,7 +68,7 @@ int simcom_fs_moveto(const struct device *dev, const char *filename, enum simcom
     char send_buf[sizeof("AT+FSPRESET=\"###########################\",#")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+FSPRESET=\"%s\",%d", filename, direction);
     struct modem_data *mdata = dev->data;
-    return modem_direct_cmd(mdata, send_buf);
+    return simcom_cmd(mdata, send_buf, K_SECONDS(3));
 }
 
 #if 0

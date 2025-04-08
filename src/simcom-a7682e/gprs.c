@@ -20,7 +20,7 @@ int modem_pdp_context_enable(struct modem_data *mdata)
 
     char send_buf[sizeof("AT+CGSOCKCONT=1,\"IP\",\"################################\"")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CGSOCKCONT=1,\"IP\",\"%s\"", apn);
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(2));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(2));
 }
 
 int modem_apn(struct modem_data *mdata, char *apn, size_t len)
@@ -226,7 +226,7 @@ int modem_set_apn(struct modem_data *mdata, int n, const char* apn)
     if(apn == NULL) return 0;
     // snprintk(send_buf, sizeof(send_buf), "AT+CGDCONT=%d,\"IPV4V6\",\"%s\"", n, apn);
     snprintk(send_buf, sizeof(send_buf), "AT+CGDCONT=%d,\"IP\",\"%s\"", n, apn);
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(2));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(2));
 }
 
 // AT+CGACT=1,1
@@ -234,7 +234,7 @@ int modem_activate_context(struct modem_data *mdata, int n)
 {
     char send_buf[sizeof("AT+CGACT=1,#")] = {0};
     snprintk(send_buf, sizeof(send_buf), "AT+CGACT=1,%d", n);
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(30));
+    return simcom_cmd(mdata, send_buf, K_SECONDS(30));
 }
 
 int modem_gprs_init(struct modem_data *mdata)
@@ -253,8 +253,8 @@ int modem_gprs_init(struct modem_data *mdata)
 
 
     // AT+CNMP=?
-    modem_direct_cmd(mdata, "AT+CNMP?"); k_sleep(K_MSEC(100));
-    modem_direct_cmd(mdata, "AT+CNMP=?"); k_sleep(K_MSEC(1000));
+    simcom_cmd(mdata, "AT+CNMP?", K_SECONDS(3)); k_sleep(K_MSEC(100));
+    simcom_cmd(mdata, "AT+CNMP=?", K_SECONDS(3)); k_sleep(K_MSEC(1000));
 
     return 0;
 }
@@ -265,13 +265,13 @@ int modem_gprs_report(const struct device *dev)
     struct modem_data *mdata = dev->data;
 
 
-    modem_direct_cmd(mdata, "AT+CGCONTRDP=?"); k_sleep(K_MSEC(200));
+    simcom_cmd(mdata, "AT+CGCONTRDP=?", K_SECONDS(3)); k_sleep(K_MSEC(200));
 
-    modem_direct_cmd(mdata, "AT+CPSI?"); k_sleep(K_MSEC(100));
-    modem_direct_cmd(mdata, "AT+COPS?"); k_sleep(K_MSEC(100));
+    simcom_cmd(mdata, "AT+CPSI?", K_SECONDS(3)); k_sleep(K_MSEC(100));
+    simcom_cmd(mdata, "AT+COPS?", K_SECONDS(3)); k_sleep(K_MSEC(100));
 
     // Show network system mode
-    modem_direct_cmd(mdata, "AT+CNSMOD?"); k_sleep(K_MSEC(100));
+    simcom_cmd(mdata, "AT+CNSMOD?", K_SECONDS(3)); k_sleep(K_MSEC(100));
 
     // modem_direct_cmd(mdata, "AT+CSDH?"); k_sleep(K_MSEC(100));
     // modem_direct_cmd(mdata, "AT+CSCA?"); k_sleep(K_MSEC(100));
@@ -281,10 +281,10 @@ int modem_gprs_report(const struct device *dev)
     // modem_direct_cmd("AT+CNSMOD?"); k_sleep(K_SECONDS(2));
     modem_pdp_context_enable(mdata);
 
-    modem_direct_cmd(mdata, "AT+CGPADDR"); k_sleep(K_MSEC(100));
-    modem_direct_cmd(mdata, "AT+CGDCONT?"); k_sleep(K_MSEC(100));
-    modem_direct_cmd(mdata, "AT+CGSOCKCONT?"); k_sleep(K_MSEC(100));
-    modem_direct_cmd(mdata, "AT+CGSOCKCONT=?"); k_sleep(K_MSEC(200));
+    simcom_cmd(mdata, "AT+CGPADDR", K_SECONDS(3)); k_sleep(K_MSEC(100));
+    simcom_cmd(mdata, "AT+CGDCONT?", K_SECONDS(3)); k_sleep(K_MSEC(100));
+    simcom_cmd(mdata, "AT+CGSOCKCONT?", K_SECONDS(3)); k_sleep(K_MSEC(100));
+    simcom_cmd(mdata, "AT+CGSOCKCONT=?", K_SECONDS(3)); k_sleep(K_MSEC(200));
 
     return 0;
 }

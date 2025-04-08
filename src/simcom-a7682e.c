@@ -61,6 +61,7 @@ static int init(const struct device *dev)
 {
     int ret = 0;
 	struct modem_data *mdata = dev->data;
+    mdata->dev = dev;
 
     // struct device *uart_dev = (struct device *)MDM_UART_DEV;
 	// LOG_INF("SIMCOM SIM7600G LTE-modem (@UART:%s)", uart_dev->name);
@@ -136,10 +137,10 @@ static int init(const struct device *dev)
     	return ret;
 }
 
-int modem_direct_cmd(struct modem_data *mdata, const char* cmd)
-{
-    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, cmd, &mdata->sem_response, K_SECONDS(2));
-}
+// int modem_direct_cmd(struct modem_data *mdata, const char* cmd)
+// {
+//     return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, cmd, &mdata->sem_response, K_SECONDS(2));
+// }
 
 static void modem_run_work(struct k_work *work)
 {
@@ -364,3 +365,213 @@ DEVICE_DT_INST_DEFINE(0,
 // NET_SOCKET_OFFLOAD_REGISTER(simcom_sim7080, CONFIG_NET_SOCKETS_OFFLOAD_PRIORITY,
 // 			    AF_UNSPEC, offload_is_supported, offload_socket);
 
+
+
+
+// #include <zephyr/kernel.h>
+// #include "common.h"
+
+// #include <zephyr/logging/log.h>
+// LOG_MODULE_DECLARE(modem_a7682e, CONFIG_MMODEM_LOG_LEVEL);
+
+static bool simcom_STATUS_pin_is_present(struct modem_data *mdata)
+{
+    // TODO: Можливо треба прибрати пряме визначення на dev в mdata
+    // Get struct modem_config for my device
+    // 1st: i must get pointer to dev struct
+    // 2nd: i must get pointer to modem_config struct
+    // LOG_ERR("How i can get config?");
+    // dev->data is a pointer of dev->data
+    // const struct device *dev = CONTAINER_OF(mdata, struct modem_data, mctx);
+    const struct device *dev = mdata->dev;
+    const struct modem_config *config = dev->config;
+
+    LOG_ERR("Pointer of &config->status: %p [%d]", &config->status, gpio_pin_get_dt(&config->status));
+    // Check STATUS pin
+    bool is_status_present = (gpio_pin_get_dt(&config->status) == 1);
+    if(!is_status_present) {
+        LOG_ERR("==== STATUS pin is LOW ====");
+    }
+    return is_status_present;
+}
+
+// Commands with simple wait answer
+int simcom_cmd_with_simple_wait_answer(
+    struct modem_data *mdata,
+    const char *send_buf,
+    const struct modem_cmd handler_cmds[],
+    size_t handler_cmds_len,
+    k_timeout_t timeout
+)
+{
+    if(!simcom_STATUS_pin_is_present(mdata)) return -EIO;
+
+    /* Send the Modem command. */
+    int ret = modem_cmd_send_ext(&mdata->mctx.iface, &mdata->mctx.cmd_handler,
+        handler_cmds, handler_cmds_len,
+        send_buf, &mdata->sem_response, timeout/*K_SECONDS(2)*/, MODEM_NO_UNSET_CMDS
+    );
+
+    if (ret < 0) {
+        LOG_ERR("Failed to send command [%s]. No response OK", send_buf);
+        goto exit;
+    }
+    k_sem_reset(&mdata->sem_response);
+
+    /* Wait for response  */
+    ret = k_sem_take(&mdata->sem_response, timeout);
+    if (ret < 0) {
+        LOG_ERR("No got response from modem");
+        goto exit;
+    }
+    ret = modem_cmd_handler_get_error(&mdata->cmd_handler_data);
+    if (ret < 0) {
+        LOG_ERR("Got error: %d", ret);
+        goto exit;
+    }
+
+    // TODO: Maybe need callback here?
+
+exit:
+    (void)modem_cmd_handler_update_cmds(&mdata->cmd_handler_data, NULL, 0U, false);
+    return ret;
+}
+
+/* Handler for direct commands, expected data after ">" symbol */
+MODEM_CMD_DIRECT_DEFINE(on_cmd_tx_ready)
+{
+	struct modem_data *mdata = CONTAINER_OF(data, struct modem_data, cmd_handler_data);
+	k_sem_give(&mdata->sem_tx_ready);
+    // LOG_ERR("on_cmd_tx_ready");
+    return len;
+}
+
+// Command to send data to the modem after the ">" symbol
+// TODO: Think about custom handlers
+int simcom_cmd_with_direct_payload(
+    struct modem_data *mdata,
+    const char *send_buf,
+    const char *data,
+    size_t data_len,
+    const struct modem_cmd *one_handler_cmds,
+    k_timeout_t timeout
+)
+{
+    int ret;
+
+    struct modem_cmd handler_cmds[] = {
+        MODEM_CMD_DIRECT(">", on_cmd_tx_ready),
+        MODEM_CMD_DIRECT(">", on_cmd_tx_ready)  // Fake record for one_handler_cmds
+    };
+
+    if(!simcom_STATUS_pin_is_present(mdata)) return -EIO;
+
+    if(one_handler_cmds) {
+        handler_cmds[1] = *one_handler_cmds;
+    }
+
+    /* Setup the locks correctly. */
+    k_sem_take(&mdata->cmd_handler_data.sem_tx_lock, K_FOREVER);
+    k_sem_reset(&mdata->sem_tx_ready);
+
+    // /* set command handlers */
+    // ret = modem_cmd_handler_update_cmds(&mdata->cmd_handler_data,
+    //     handler_cmds, (one_handler_cmds) ? 2 : 1,
+    //     true);
+    // if(ret < 0) {
+    //     LOG_ERR("simcom_cmd_with_direct_payload: Failed to set command handlers");
+    //     goto exit;
+    // }
+
+
+    /* Send the Modem command. */
+    ret = modem_cmd_send_ext(&mdata->mctx.iface, &mdata->mctx.cmd_handler,
+        handler_cmds, (one_handler_cmds) ? 2 : 1, send_buf, NULL, K_NO_WAIT,
+        MODEM_NO_TX_LOCK | MODEM_NO_UNSET_CMDS
+    );
+
+    // ret = modem_cmd_send_nolock(&mdata->mctx.iface, &mdata->mctx.cmd_handler,
+    //     NULL, 0U, send_buf, NULL, K_NO_WAIT
+    // );
+    if(ret < 0) {
+        LOG_ERR("simcom_cmd_with_direct_payload: Failed to send command");
+        goto exit;
+    }
+
+
+    /* Wait for '>' */
+    ret = k_sem_take(&mdata->sem_tx_ready, K_MSEC(5000));
+    if (ret < 0) {
+        /* Didn't get the data prompt - Exit. */
+        LOG_ERR("simcom_cmd_with_direct_payload: Timeout waiting for tx [%s]", send_buf);
+        goto exit;
+    }
+
+    /* Write all data on the console */
+    mdata->mctx.iface.write(&mdata->mctx.iface, data, data_len);
+
+
+    // Is it cover both scenarios?
+    // OK, then Handler
+    // Handler, then OK
+
+    /* Wait for OK or ERROR */
+    k_sem_reset(&mdata->sem_response);
+    ret = k_sem_take(&mdata->sem_response, timeout);
+    if (ret < 0) {
+        LOG_ERR("simcom_cmd_with_direct_payload: No send response");
+        goto exit;
+    }
+    ret = modem_cmd_handler_get_error(&mdata->cmd_handler_data);
+    if (ret < 0) {
+        LOG_ERR("Got error: %d", ret);
+        goto exit;
+    }
+
+    if(one_handler_cmds) {
+        // Wait for second handler
+        k_sem_reset(&mdata->sem_response);
+        ret = k_sem_take(&mdata->sem_response, timeout);
+        if (ret < 0) {
+            LOG_ERR("simcom_cmd_with_direct_payload: No send response");
+            goto exit;
+        }
+        ret = modem_cmd_handler_get_error(&mdata->cmd_handler_data);
+        if (ret < 0) {
+            LOG_ERR("Got error: %d", ret);
+            goto exit;
+        }
+    }
+
+    // TODO: Maybe need callback here?
+
+exit:
+    /* unset handler commands and ignore any errors */
+    (void)modem_cmd_handler_update_cmds(&mdata->cmd_handler_data,
+                        NULL, 0U, false);
+    k_sem_give(&mdata->cmd_handler_data.sem_tx_lock);
+
+    // if (ret < 0) {
+    //     return ret;
+    // }
+
+    return ret;
+}
+
+// No operation command. Used for flushing putty buffer
+int simcom_at(const struct device *dev)
+{
+    struct modem_data *mdata = dev->data;
+    if(!simcom_STATUS_pin_is_present(mdata)) return -EIO;
+    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, "AT", &mdata->sem_response, K_SECONDS(1));
+}
+
+// Free modem commad
+int simcom_cmd(struct modem_data *mdata, const char *send_buf, k_timeout_t timeout)
+{
+    // char send_buf[sizeof("AT+CSSLCFG=\"cacert\",#,\"########################\"")] = {0};
+    // snprintk(send_buf, sizeof(send_buf), "AT+CSSLCFG=\"cacert\",%d,\"%s\"", ssl_ctx_index, ca_file);
+    // struct modem_data *mdata = (struct modem_data *)dev->data;
+    if(!simcom_STATUS_pin_is_present(mdata)) return -EIO;
+    return modem_cmd_send(&mdata->mctx.iface, &mdata->mctx.cmd_handler, NULL, 0U, send_buf, &mdata->sem_response, K_SECONDS(10));
+}

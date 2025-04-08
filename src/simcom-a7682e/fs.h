@@ -1,6 +1,7 @@
 #pragma once
 
 #include <zephyr/kernel.h>
+#include "../simcom-a7682e.h"
 
 int simcom_files_meminfo(const struct device *dev);
 int simcom_files_cd(const struct device *dev, const char *path);
