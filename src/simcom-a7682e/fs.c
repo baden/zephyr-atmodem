@@ -24,6 +24,16 @@ int simcom_files_cd(const struct device *dev, const char *path)
     return simcom_cmd(mdata, send_buf, K_SECONDS(3));
 }
 
+// AT+FSDEL Delete file in current directory
+// AT+FSDEL=<filename>
+int simcom_files_delete(const struct device *dev, const char *filename)
+{
+    char send_buf[sizeof("AT+FSDEL=\"########################################\"")] = {0};
+    snprintk(send_buf, sizeof(send_buf), "AT+FSDEL=\"%s\"", filename);
+    struct modem_data *mdata = dev->data;
+    return simcom_cmd(mdata, send_buf, K_SECONDS(3));
+}
+
 // AT+FSMKDIR Make new directory in current directory
 // AT+FSMKDIR=<dir>
 // AT+FSMKDIR=AMR

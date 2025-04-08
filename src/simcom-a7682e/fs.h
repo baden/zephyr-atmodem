@@ -12,6 +12,7 @@ enum {
 };
 int simcom_files_ls(const struct device *dev, int type);
 int simcom_files_mkdir(const struct device *dev, const char *dir);
+int simcom_files_delete(const struct device *dev, const char *filename);
 
 enum simcom_fs_move_direction {
     SIMCOM_FS_MOVE_TO_ROOT = 0,
