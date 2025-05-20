@@ -69,6 +69,7 @@ static int init(const struct device *dev)
     mdata->state = ATMODEM_STATE_OFF;
 
     k_sem_init(&mdata->sem_response,	 0, 1);
+    k_sem_init(&mdata->sem_response2,	 0, 1);
     k_sem_init(&mdata->sem_tx_ready,	 0, 1);
     k_sem_init(&mdata->sem_http_action_response, 0, 1);
     k_sem_init(&mdata->sem_http_file_read, 0, 1);
@@ -406,6 +407,11 @@ int simcom_cmd_with_simple_wait_answer(
 {
     if(!simcom_STATUS_pin_is_present(mdata)) return -EIO;
 
+    LOG_ERR("DEBUG CMD: [%s].", send_buf);
+
+    k_sem_reset(&mdata->sem_response2); // TODO: Не впевнен шо це ідеальне рішення.
+    // Можливо таки треба сбрасувати після отримання sem_response?
+
     /* Send the Modem command. */
     int ret = modem_cmd_send_ext(&mdata->mctx.iface, &mdata->mctx.cmd_handler,
         handler_cmds, handler_cmds_len,
@@ -416,12 +422,12 @@ int simcom_cmd_with_simple_wait_answer(
         LOG_ERR("Failed to send command [%s]. No response OK", send_buf);
         goto exit;
     }
-    k_sem_reset(&mdata->sem_response);
+    // k_sem_reset(&mdata->sem_response);
 
-    /* Wait for response  */
-    ret = k_sem_take(&mdata->sem_response, timeout);
+    /* Wait for response2  */
+    ret = k_sem_take(&mdata->sem_response2, timeout);
     if (ret < 0) {
-        LOG_ERR("No got response from modem");
+        LOG_ERR("No got handler response from modem");
         goto exit;
     }
     ret = modem_cmd_handler_get_error(&mdata->cmd_handler_data);

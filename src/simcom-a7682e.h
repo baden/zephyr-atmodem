@@ -50,7 +50,8 @@ struct modem_data {
     atmodem_event_cb_t event_cb;
 
     /* Semaphore(s) */
-	struct k_sem sem_response;
+	struct k_sem sem_response;  // Regular responses, like "OK", "ERROR", etc.
+    struct k_sem sem_response2; // Additional responses, if needed: "+CMQTTSTART: ", "+CMQTTCONNECT: ", etc.
     struct k_sem sem_tx_ready;
 
     /* Post OK commands semaphores */

@@ -24,11 +24,11 @@ static bool pin_init(const struct modem_config *config)
     // status_state = gpio_pin_get_dt(&config->status);
     // LOG_DBG("gsm_start: STATUS is %d", status_state);
 
-    LOG_ERR("Pointer of &config->status: %p", &config->status);
+    // LOG_ERR("Pointer of &config->status: %p", &config->status);
     gpio_pin_configure_dt(&config->status, GPIO_INPUT);
     k_sleep(K_MSEC(100));
     status_state = gpio_pin_get_dt(&config->status);
-    LOG_ERR("gsm_start: STATUS is %d", status_state);
+    // LOG_ERR("gsm_start: STATUS is %d", status_state);
 
 	gpio_pin_configure_dt(&config->dtr, GPIO_OUTPUT);
 	gpio_pin_set_dt(&config->dtr, 0);							// TODO: Set to 1 for entering sleep mode
@@ -44,7 +44,7 @@ static bool pin_init(const struct modem_config *config)
         gpio_pin_set_dt(&config->power, 1);
         return true;
     } else {
-        LOG_DBG("gsm_start: Modem off. Fresh start?");
+        // LOG_DBG("gsm_start: Modem off. Fresh start?");
 
         gpio_pin_configure_dt(&config->power, GPIO_OUTPUT);
         gpio_pin_set_dt(&config->power, 0);
@@ -62,7 +62,7 @@ static bool pin_init(const struct modem_config *config)
         gpio_pin_set_dt(&config->power, 1);
         k_msleep(30);
 
-        LOG_DBG("gsm_start: Pressing PWRKEY for 50ms");
+        // LOG_DBG("gsm_start: Pressing PWRKEY for 50ms");
         gpio_pin_set_dt(&config->pwrkey, 1);
         k_msleep(50);
         gpio_pin_set_dt(&config->pwrkey, 0);
@@ -71,15 +71,15 @@ static bool pin_init(const struct modem_config *config)
 
         LOG_DBG("gsm_start: Waiting STATUS (typycal 7s)");
         int timeout = 0;
-        while(!gpio_pin_get_dt(&config->status) && timeout < 20) {
+        while(!gpio_pin_get_dt(&config->status) && timeout < 200) {
             timeout++;
-            k_msleep(1000);
+            k_msleep(100);
         }
         if(!gpio_pin_get_dt(&config->status)) {
             LOG_ERR("gsm_start: no STATUS signal");
             return -1;
         }
-        LOG_DBG("gsm_start: STATUS goted for %d secs", timeout);
+        LOG_DBG("gsm_start: STATUS goted for %d msecs", timeout*100);
         LOG_ERR("gsm_start: STATUS is %d", gpio_pin_get_dt(&config->status));
     }
 
