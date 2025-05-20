@@ -11,7 +11,7 @@ MODEM_CMD_DEFINE(on_cmd_mqtt_start)
 {
 	struct modem_data *mdata = CONTAINER_OF(data, struct modem_data, cmd_handler_data);
     modem_cmd_handler_set_error(data, (argv[0][0] == '0') ? 0 : -EIO);
-    k_sem_give(&mdata->sem_response);
+    k_sem_give(&mdata->sem_response2);
     LOG_ERR("on +CMQTTSTART: [%s]", argv[0]);
     return 0;
 }
@@ -52,9 +52,10 @@ MODEM_CMD_DEFINE(on_cmd_mqtt_connect)
 	struct modem_data *mdata = CONTAINER_OF(data, struct modem_data, cmd_handler_data);
     int client_index = atoi(argv[0]);
     bool connected = (argv[1][0] == '0') ? true : false;
+    LOG_ERR("DEBUG on +CMQTTCONNECT: client_index=%d, connected=%d", client_index, connected);
     modem_cmd_handler_set_error(data, connected ? 0 : -EIO);
     mdata->mqtt_states[client_index] = connected ? MQTT_STATE_CONNECTED : MQTT_STATE_DISCONNECTED;
-    k_sem_give(&mdata->sem_response);
+    k_sem_give(&mdata->sem_response2);
     return 0;
 }
 
@@ -76,7 +77,7 @@ MODEM_CMD_DEFINE(on_cmd_mqtt_disconnect)
     // int err = atoi(argv[1]);
     mdata->mqtt_states[client_index] = MQTT_STATE_DISCONNECTED;
     modem_cmd_handler_set_error(data, 0);   //  Always OK
-    k_sem_give(&mdata->sem_response);
+    k_sem_give(&mdata->sem_response2);
     return 0;
 }
 
@@ -95,7 +96,7 @@ MODEM_CMD_DEFINE(on_cmd_mqtt_stop)
 {
     struct modem_data *mdata = CONTAINER_OF(data, struct modem_data, cmd_handler_data);
     modem_cmd_handler_set_error(data, 0);   //  Always OK
-    k_sem_give(&mdata->sem_response);
+    k_sem_give(&mdata->sem_response2);
     return 0;
 }
 
@@ -147,7 +148,7 @@ MODEM_CMD_DEFINE(on_cmd_mqtt_publish)
 {
     struct modem_data *mdata = CONTAINER_OF(data, struct modem_data, cmd_handler_data);
     modem_cmd_handler_set_error(data, 0);   //  Always OK? Or not?
-    k_sem_give(&mdata->sem_response);
+    k_sem_give(&mdata->sem_response2);
     return 0;
 }
 
@@ -176,7 +177,7 @@ int simcom_mqtt_publish(const struct device *dev/*struct modem_data *mdata*/, co
 {
     int ret;
     struct modem_data *mdata = dev->data;
-    simcom_at(dev);
+    // simcom_at(dev);
     ret = _mqtt_set_topic(mdata, topic);
     if (ret < 0) return ret;
     ret = _mqtt_set_payload(mdata, payload);

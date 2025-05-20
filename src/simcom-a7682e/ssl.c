@@ -144,7 +144,7 @@ MODEM_CMD_DEFINE(on_cmd_ssl_start)
 {
 	struct modem_data *mdata = CONTAINER_OF(data, struct modem_data, cmd_handler_data);
     modem_cmd_handler_set_error(data, (argv[1][0] == '0') ? 0 : -EIO);
-    k_sem_give(&mdata->sem_response);
+    k_sem_give(&mdata->sem_response2);
     return 0;
 }
 
@@ -164,7 +164,7 @@ MODEM_CMD_DEFINE(on_cmd_ssl_stop)
 {
 	struct modem_data *mdata = CONTAINER_OF(data, struct modem_data, cmd_handler_data);
     modem_cmd_handler_set_error(data, (argv[1][0] == '0') ? 0 : -EIO);
-    k_sem_give(&mdata->sem_response);
+    k_sem_give(&mdata->sem_response2);
     return 0;
 }
 
@@ -215,7 +215,7 @@ MODEM_CMD_DEFINE(on_cmd_ssl_open)
     int err = atoi(argv[2]);
     // modem_cmd_handler_set_error(data, (argv[1][0] == '0') ? 0 : -EIO);
     modem_cmd_handler_set_error(data, (err==0) ? 0 : -EIO);
-    k_sem_give(&mdata->sem_response);
+    k_sem_give(&mdata->sem_response2);
     return 0;
 }
 
@@ -238,7 +238,7 @@ MODEM_CMD_DEFINE(on_cmd_ssl_close)
 {
     struct modem_data *mdata = CONTAINER_OF(data, struct modem_data, cmd_handler_data);
     modem_cmd_handler_set_error(data, 0);
-    k_sem_give(&mdata->sem_response);
+    k_sem_give(&mdata->sem_response2);
     return 0;
 }
 
