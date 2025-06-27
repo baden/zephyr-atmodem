@@ -1,3 +1,5 @@
+zephyr_syscall_header(../include/drivers/at-modem.h)
+
 zephyr_library()
 
 zephyr_library_sources_ifdef(CONFIG_MODEM_SIM7600G simcom-sim7600g.c)

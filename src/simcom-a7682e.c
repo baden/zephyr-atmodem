@@ -312,7 +312,8 @@ static int __handler_result_parser(const struct device *dev, int ret)
     return 0;
 }
 
-static struct atmodem_driver_api api_funcs = {
+static DEVICE_API(atmodem, atmodem_driver_api) = {
+// static struct atmodem_driver_api api_funcs = {
 	.setup = setup,
 	.stop = stop,
     .run = run,
@@ -354,7 +355,7 @@ static struct atmodem_driver_api api_funcs = {
 // DEVICE_DT_DEFINE(DT_INST(0, simcom_sim7600g),
 DEVICE_DT_INST_DEFINE(0,
     init, NULL, &mdata, &modem_driver_config,
-	POST_KERNEL, 42/*CONFIG_MODEM_GSM_INIT_PRIORITY*/, &api_funcs
+	POST_KERNEL, 42/*CONFIG_MODEM_GSM_INIT_PRIORITY*/, &atmodem_driver_api
 );
 
 
