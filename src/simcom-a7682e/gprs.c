@@ -2,13 +2,27 @@
 // #include "nvm/nvm.h"
 #include "id.h"
 #include <zephyr/sys/printk.h>
-#include "tpf.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(modem_a7682e, CONFIG_MMODEM_LOG_LEVEL);
 
+
+#if defined(CONFIG_TPFMODULE)
+
+#include "tpf.h"
+
 TPF_DEF(STR64, gsm_apn1, "*auto");
 TPF_DEF(STR64, gsm_apn2, "*auto");
+
+#define _gsm_apn1 (const char*)TPF(gsm_apn1)
+#define _gsm_apn2 (const char*)TPF(gsm_apn2)
+
+#else
+
+#define _gsm_apn1 "*auto"
+#define _gsm_apn2 "*auto"
+
+#endif
 
 int modem_pdp_context_enable(struct modem_data *mdata)
 {
@@ -28,8 +42,8 @@ int modem_apn(struct modem_data *mdata, char *apn, size_t len)
     #if 1
         // TODO: Hardcoded for now
         // strncpy(apn, "internet", len);
-        if(strcmp((const char*)TPF(gsm_apn1), "*auto") != 0) {
-            strncpy(apn, (const char*)TPF(gsm_apn1), len);
+        if(strcmp(_gsm_apn1, "*auto") != 0) {
+            strncpy(apn, _gsm_apn1, len);
         } else {
             char *op = query_operator(mdata);
             if(strstr(op, "KYIVSTAR") != NULL) {

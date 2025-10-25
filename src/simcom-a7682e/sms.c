@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "sms.h"
-#include "lte/lte.h"
+// #include "lte/lte.h"
 #include "ucs2.h"
 #include "drivers/at-modem.h"
 // #include "nvm/nvm.h"
@@ -129,24 +129,24 @@ uint16_t utf8_to_ucs2(const uint8_t* utf8, int* len) {
         // 1-байтовий символ (ASCII)
         ucs2 = *utf8;
         *len = 1;
-    } 
+    }
     else if ((*utf8 & 0xE0) == 0xC0) {
         // 2-байтовий символ (U+0080 - U+07FF)
         if ((utf8[1] & 0xC0) != 0x80) goto error; // Перевірка продовження
         ucs2 = ((utf8[0] & 0x1F) << 6) | (utf8[1] & 0x3F);
         *len = 2;
-    } 
+    }
     else if ((*utf8 & 0xF0) == 0xE0) {
         // 3-байтовий символ (U+0800 - U+FFFF)
         if ((utf8[1] & 0xC0) != 0x80 || (utf8[2] & 0xC0) != 0x80) goto error;
         ucs2 = ((utf8[0] & 0x0F) << 12) | ((utf8[1] & 0x3F) << 6) | (utf8[2] & 0x3F);
         *len = 3;
-    } 
+    }
     else {
         // 4-байтовий символ (U+10000 - U+10FFFF) → UCS-2 не підтримує!
         goto error;
     }
-    
+
     return ucs2;
 
 error:
@@ -354,7 +354,9 @@ static int intlength(int v)
 // +CMGR: "REC READ","7512110511811511697114","","21/11/26,09:12:02+08",208,96,0,8,"+380672020020",145,67
 //        0          1                        2  3         4            5   6  7 8 9               10  11
 
+// TODO: dirty hack. Треба це зробити нормально
 
+#define LTE_MODEM_DEVICE DEVICE_DT_GET(DT_ALIAS(lte))
 
 static int sms_incoming_handler(void *payload, size_t payload_size)
 {
@@ -574,7 +576,7 @@ static size_t net_buf_linearize_utf8(char *dst, size_t dst_len, const struct net
 MODEM_CMD_DEFINE(on_cmd_cmgr)
 {
     int ret;
-    
+
     struct sms_payload sms;
     char body[SEND_SMS_MAX_MESSAGE_LENGTH*4 + 1];
     char phone_ucs2[16*4 + 1];
@@ -627,7 +629,7 @@ MODEM_CMD_DEFINE(on_cmd_cmgr)
 nophone:
     // Поки встановимо фейковий номер
     // strcpy(sms.phone, "+380679332332");
-    
+
     // LOG_ERR("Sender: [%s]", sms.phone);
 
     // Skip "+CMGR..." URC and 0x0A, 0x0D
@@ -655,7 +657,7 @@ nophone:
     size_t tlen = MIN(sms_body_length+1, sizeof(sms.message));
     // ucs2_to_ascii(sms.message, body, tlen);
     ucs2_to_utf8(sms.message, body, tlen);
-    
+
     // LOG_ERR("SMS body length: %d", sms_body_length);
 
     // LOG_HEXDUMP_ERR(sms.message, sms_body_length+1, "SMS body");

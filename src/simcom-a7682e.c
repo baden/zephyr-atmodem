@@ -1,6 +1,7 @@
 #include "simcom-a7682e.h"
 
-#define DT_DRV_COMPAT simcom_a7682e
+// #define DT_DRV_COMPAT simcom_a7682e
+#define DT_DRV_COMPAT simcom_a76xx_at
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(modem_a7682e, CONFIG_MODEM_LOG_LEVEL);
@@ -31,10 +32,14 @@ static struct modem_data       mdata;
 static K_KERNEL_STACK_DEFINE(modem_rx_stack, CONFIG_MODEM_A7682E_RX_STACK_SIZE);
 
 static const struct modem_config modem_driver_config = {
-    .status    = GPIO_DT_SPEC_INST_GET(0,    status_gpios),
-    .dtr       = GPIO_DT_SPEC_INST_GET(0,       dtr_gpios),
-    .pwrkey    = GPIO_DT_SPEC_INST_GET(0,    pwrkey_gpios),
-    .power     = GPIO_DT_SPEC_INST_GET(0,     power_gpios),
+    // .status    = GPIO_DT_SPEC_INST_GET(0,    status_gpios),
+    .status    = GPIO_DT_SPEC_INST_GET(0,    mdm_status_gpios),
+    // .dtr       = GPIO_DT_SPEC_INST_GET(0,       dtr_gpios),
+    .dtr       = GPIO_DT_SPEC_INST_GET(0,       mdm_wake_gpios),
+    // .pwrkey    = GPIO_DT_SPEC_INST_GET(0,    pwrkey_gpios),
+    .pwrkey    = GPIO_DT_SPEC_INST_GET(0,    mdm_power_gpios),
+    // .power     = GPIO_DT_SPEC_INST_GET(0,     power_gpios),
+    .power     = GPIO_DT_SPEC_INST_GET(0,     mdm_vbat_gpios),
 };
 
 /* Func: modem_rx

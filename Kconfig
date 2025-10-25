@@ -6,6 +6,7 @@ source "subsys/logging/Kconfig.template.log_config"
 
 config ATMODEM_DRV
 	bool "AT-modem driver"
+	default n
 	help
 	  This option enables the AT MODEM driver.
 
@@ -43,9 +44,13 @@ config MODEM_A7682E
     select MODEM_CMD_HANDLER
     select MODEM_IFACE_UART
     select ATMODEM_DRV
+	#select MODEM_SOCKET
+	#select NET_OFFLOAD
+	#select NET_SOCKETS_OFFLOAD
     #select MODEM_IFACE_UART_POLL
 	#select SERIAL_HAS_DRIVER
 	#select HAS_NUMICRO_UART
+	imply GPIO
 	help
 	  This option enables the A7682E driver (May be hardcoded to Fenix FXA500-02)
 	  Say y to use A7682E on Fenix FXA500-02.
