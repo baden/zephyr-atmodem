@@ -7,7 +7,10 @@
 LOG_MODULE_DECLARE(modem_a7682e, CONFIG_MMODEM_LOG_LEVEL);
 
 
-#if defined(CONFIG_TPFMODULE)
+#include "tpf.h"
+TPF_DEF(STR64, gsm_apn1__, "*auto");
+
+#if defined(CONFIG_TPF_MODULE)
 
 #include "tpf.h"
 
