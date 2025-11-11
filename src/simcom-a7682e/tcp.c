@@ -375,7 +375,7 @@ int sockread_common(struct modem_cmd_handler_data *data, int socket_data_length,
     int skips = intlength(socket_data_length) + 2; // length value + 0x0A + 0x0D
 
     if (net_buf_frags_len(data->rx_buf) < (socket_data_length+skips)) {
-		LOG_DBG("Not enough data -- wait!");
+		// LOG_DBG("Not enough data -- wait!");
 		return -EAGAIN;
 	}
     // LOG_ERR("socket_data_length = %d", socket_data_length);

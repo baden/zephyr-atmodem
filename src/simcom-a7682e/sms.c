@@ -601,7 +601,7 @@ MODEM_CMD_DEFINE(on_cmd_cmgr)
     int skips = len + 2; // 0x0A + 0x0D
 
     if (net_buf_frags_len(data->rx_buf) < (sms_body_length*4 + skips + 2)) {
-		LOG_ERR("Not enough data -- wait!");
+		// LOG_ERR("Not enough data -- wait!");
 		return -EAGAIN;
 	}
 
