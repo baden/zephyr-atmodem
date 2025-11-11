@@ -262,7 +262,7 @@ int simcom_setup(struct modem_data *mdata, const struct modem_config *config)
     }
     #endif
 
-    #if 1   // TODO: Temporary disabled
+    #if 0   // TODO: Temporary(?) disabled
     // LteCheckSMS(-1);  // Check all SMSs
     int i = -1;
     simcom_sms_read(&i, sizeof(i));

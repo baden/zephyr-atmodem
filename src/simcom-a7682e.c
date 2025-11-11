@@ -413,7 +413,7 @@ int simcom_cmd_with_simple_wait_answer(
 {
     if(!simcom_STATUS_pin_is_present(mdata)) return -EIO;
 
-    LOG_ERR("DEBUG CMD: [%s].", send_buf);
+    // LOG_ERR("DEBUG CMD: [%s].", send_buf);
 
     k_sem_reset(&mdata->sem_response2); // TODO: Не впевнен шо це ідеальне рішення.
     // Можливо таки треба сбрасувати після отримання sem_response?

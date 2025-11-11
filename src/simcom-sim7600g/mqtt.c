@@ -231,7 +231,7 @@ int mqtt_on_rxtopic_handler(struct modem_cmd_handler_data *data, int client_inde
 	}
     int skips = intlength(sub_topic_len) + 2; // len(sub_topic_len) + (0x0A) + (0x0D)
     if (net_buf_frags_len(data->rx_buf) < (sub_topic_len + skips)) {
-		LOG_DBG("Not enough data -- wait!");
+		// LOG_DBG("Not enough data -- wait!");
 		return -EAGAIN;
 	}
     // Skip length value and 0x0A, 0x0D
@@ -275,7 +275,7 @@ int mqtt_on_rx_handler(struct modem_cmd_handler_data *data, int client_index, in
     }
     int skips = intlength(sub_payload_len) + 2; // len(sub_payload_len) + (0x0A) + (0x0D)
     if (net_buf_frags_len(data->rx_buf) < (sub_payload_len + skips)) {
-        LOG_DBG("Not enough data -- wait!");
+        // LOG_DBG("Not enough data -- wait!");
         return -EAGAIN;
     }
     // Skip length value and 0x0A, 0x0D
