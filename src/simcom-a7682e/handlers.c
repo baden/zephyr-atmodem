@@ -275,6 +275,18 @@ MODEM_CMD_DEFINE(on_cmd_mqtt_connlost)
 // +CLCC: 1,1,4,0,0,"+380679******",145     - Incoming call
 // +CLCC: 1,1,6,0,0,"+380679******",145     - Call ended
 void lte_voice_on_clcc(struct modem_data *mdata, int id, int dir, int stat, char *number);
+MODEM_CMD_DEFINE(on_cmd_dtmf)
+{
+
+    LOG_INF("=== DTMF HANDLER CALLED ===");
+        
+    if (argc > 0 && argv[0] && argv[0][0] != '\0') {
+        char choice = argv[0][0];
+        lte_voice_on_dtmf(choice);
+    }
+    
+    return 0;
+}
 MODEM_CMD_DEFINE(on_cmd_clcc)
 {
     LOG_DBG("on_cmd_clcc");
@@ -392,6 +404,7 @@ static const struct modem_cmd unsol_cmds[] = {
     MODEM_CMD("+HTTP_NONET_EVENT", on_cmd_http_nonet_event, 0U, ""),
 
     #if defined(CONFIG_MODEM_VOICE)
+    MODEM_CMD("+RXDTMF: ", on_cmd_dtmf, 1U, ""),
 // TODO: move to voice module.
     MODEM_CMD("+CLCC: ", on_cmd_clcc, 3U, ","),
     // MODEM_CMD("+CLCC: ", on_cmd_clcc, /1U, ""),
@@ -407,6 +420,7 @@ static const struct modem_cmd unsol_cmds[] = {
     #endif // CONFIG_MODEM_VOICE
 
     MODEM_CMD("+CUSD: ", on_cmd_cusd, 2U, ","),
+    
 };
 
 NET_BUF_POOL_DEFINE(recv_pool, MDM_RECV_MAX_BUF, MDM_RECV_BUF_SIZE, 0, NULL);

@@ -5,7 +5,7 @@ LOG_MODULE_DECLARE(modem_a7682e, CONFIG_MMODEM_LOG_LEVEL);
 
 // TODO: Dirty hack. Temporary solution!!!
 void lte_voice_incoming_call(int stat, char *number);
-
+void lte_voice_dtmf_in_call(char dtmf);
 // +CLCC: <id1>,<dir>,<stat>,<mode>,<mpty>[,<number>,<type>[,<alpha>][,<priority>][,<CLI validity>]
 
 // Одразу після виконання ATD<n>; приходить:
@@ -34,6 +34,27 @@ void lte_voice_incoming_call(int stat, char *number);
 // +CLCC: 1,1,4,0,0,"+380679332332",145
 // RING
 
+int simcom_voice_hangup(const struct device *dev)
+{
+    struct modem_data *mdata = dev->data;
+    char send_buf[32];
+    int ret;
+
+    LOG_INF("Hanging up voice call");
+
+    // AT+CHUP - завершити дзвінок (CHangUP)
+    snprintk(send_buf, sizeof(send_buf), "AT+CHUP");
+    ret = simcom_cmd(mdata, send_buf, K_SECONDS(5));
+    
+    if (ret < 0) {
+        LOG_ERR("Failed to hang up call: %d", ret);
+        return ret;
+    }
+
+    LOG_INF("Call hung up successfully");
+    return 0;
+}
+
 void lte_voice_on_clcc(struct modem_data *mdata, int id, int dir, int stat, char *number)
 {
     LOG_INF("lte_voice_on_clcc");
@@ -42,6 +63,12 @@ void lte_voice_on_clcc(struct modem_data *mdata, int id, int dir, int stat, char
     LOG_INF("stat: %d", stat);
     LOG_INF("number: %s", number);
     lte_voice_incoming_call(stat, number);
+}
+
+void lte_voice_on_dtmf(char dtmf)
+{
+    LOG_INF("lte_voice_on_dtmf: %c", dtmf);
+
 }
 
 int simcom_voice_answer_call(const struct device *dev)
