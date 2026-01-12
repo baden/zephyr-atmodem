@@ -278,7 +278,7 @@ void lte_voice_on_clcc(struct modem_data *mdata, int id, int dir, int stat, char
 MODEM_CMD_DEFINE(on_cmd_dtmf)
 {
 
-    LOG_INF("=== DTMF HANDLER CALLED ===");
+    // LOG_INF("=== DTMF HANDLER CALLED ===");
         
     if (argc > 0 && argv[0] && argv[0][0] != '\0') {
         char choice = argv[0][0];

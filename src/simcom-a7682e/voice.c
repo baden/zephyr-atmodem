@@ -67,7 +67,7 @@ void lte_voice_on_clcc(struct modem_data *mdata, int id, int dir, int stat, char
 
 void lte_voice_on_dtmf(char dtmf)
 {
-    LOG_INF("lte_voice_on_dtmf: %c", dtmf);
+    // LOG_INF("lte_voice_on_dtmf: %c", dtmf);
     lte_voice_dtmf_in_call(dtmf);
 }
 
